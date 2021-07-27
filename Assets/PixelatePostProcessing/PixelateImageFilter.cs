@@ -8,13 +8,7 @@ public sealed class PixelateImageFilter : CustomPostProcessVolumeComponent, IPos
 {
     [Tooltip("Controls the intensity of the effect.")]
     public ClampedIntParameter blockSize = new ClampedIntParameter(5, 2, 20);
-
     public ComputeShader m_FilterComputeShader;
-
-    const string _kernelName = "Pixelate";
-    const string _resultRenderTargetName = "_ImageFilterResult";
-    int _resultRenderTargetId = Shader.PropertyToID(_resultRenderTargetName);
-    RenderTargetIdentifier _resultRenderTextureIdentifier;
 
     public bool IsActive() => m_FilterComputeShader != null;
     public override bool visibleInSceneView => false;
@@ -25,28 +19,28 @@ public sealed class PixelateImageFilter : CustomPostProcessVolumeComponent, IPos
     public override void Setup()
     {
         m_FilterComputeShader = Resources.Load<ComputeShader>("Pixelate");
-        //    AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/PixelatePostProcessing/Pixelate.compute");
     }
 
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
     {
-        var rtDescriptor = source.rt.descriptor;
-        rtDescriptor.enableRandomWrite = true;
-        cmd.GetTemporaryRT(_resultRenderTargetId, rtDescriptor);
-        var mainKernel = m_FilterComputeShader.FindKernel(_kernelName);
+        //var rtDescriptor = source.rt.descriptor;
+        //rtDescriptor.enableRandomWrite = true;
+        //cmd.GetTemporaryRT(_resultRenderTargetId, rtDescriptor);
+        
+        var mainKernel = m_FilterComputeShader.FindKernel("Pixelate");
         m_FilterComputeShader.GetKernelThreadGroupSizes(mainKernel, out uint xGroupSize, out uint yGroupSize, out _);
-        cmd.Blit(source, _resultRenderTargetId);
-        cmd.SetComputeTextureParam(m_FilterComputeShader, mainKernel, _resultRenderTargetId,
-            _resultRenderTextureIdentifier);
+        HDUtils.BlitCameraTexture(cmd, source, destination);
+        cmd.SetComputeTextureParam(m_FilterComputeShader, mainKernel, "_ImageFilterResult", destination.nameID);
         cmd.SetComputeIntParam(m_FilterComputeShader, "_BlockSize", blockSize.value);
-        cmd.SetComputeIntParam(m_FilterComputeShader, "_ResultWidth", source.rt.width);
-        cmd.SetComputeIntParam(m_FilterComputeShader, "_ResultHeight", source.rt.height);
+        cmd.SetComputeIntParam(m_FilterComputeShader, "_ResultWidth", destination.rt.width);
+        cmd.SetComputeIntParam(m_FilterComputeShader, "_ResultHeight", destination.rt.height);
         cmd.DispatchCompute(m_FilterComputeShader, mainKernel,
-            Mathf.CeilToInt(source.rt.width / (float) blockSize.value / xGroupSize),
-            Mathf.CeilToInt(source.rt.height / (float) blockSize.value / yGroupSize),
+            Mathf.CeilToInt(destination.rt.width / (float) blockSize.value / xGroupSize),
+            Mathf.CeilToInt(destination.rt.height / (float) blockSize.value / yGroupSize),
             1);
-        cmd.Blit(_resultRenderTextureIdentifier, destination);
-        cmd.ReleaseTemporaryRT(_resultRenderTargetId);
+        
+        //cmd.Blit(_resultRenderTextureIdentifier, destination);
+        //cmd.ReleaseTemporaryRT(_resultRenderTargetId);
     }
 
     public override void Cleanup()

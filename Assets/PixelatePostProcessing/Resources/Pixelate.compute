@@ -1,10 +1,13 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl" // required by the below file (I believe)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl" // for TEXTURE2D_X() and RW_TEXTURE2D_X
+
 #pragma kernel Pixelate
 
-RWTexture2D<float4> _ImageFilterResult;
+RW_TEXTURE2D_X(float4, _ImageFilterResult);
 
 int _BlockSize;
-int _ResultWidth;
-int _ResultHeight;
+uint _ResultWidth;
+uint _ResultHeight;
 
 [numthreads(8,8,1)]
 void Pixelate (uint3 id : SV_DispatchThreadID)
@@ -12,7 +15,7 @@ void Pixelate (uint3 id : SV_DispatchThreadID)
     if (id.x >= _ResultWidth || id.y >= _ResultHeight)
         return;
 
-    const float2 startPos = id.xy * _BlockSize;
+    const uint2 startPos = id.xy * _BlockSize;
     
     if (startPos.x >= _ResultWidth || startPos.y >= _ResultHeight)
         return;
@@ -22,12 +25,12 @@ void Pixelate (uint3 id : SV_DispatchThreadID)
     const int numPixels = blockHeight * blockWidth;
     
     float4 colour = float4(0, 0, 0, 0);
-    for (int i = 0; i < blockWidth; ++i)
+    for (int x = 0; x < blockWidth; ++x)
     {
-        for (int j = 0; j < blockHeight; ++j)
+        for (int y = 0; y < blockHeight; ++y)
         {
-            const uint2 pixelPos = uint2(startPos.x + i, startPos.y + j);
-            colour += _ImageFilterResult[pixelPos];
+            const uint2 pixelPos = uint2(startPos.x + x, startPos.y + y);
+            colour += _ImageFilterResult[COORD_TEXTURE2D_X(pixelPos)];
         }
     }
     colour /= numPixels;
@@ -37,7 +40,7 @@ void Pixelate (uint3 id : SV_DispatchThreadID)
         for (int j = 0; j < blockHeight; ++j)
         {
             const uint2 pixelPos = uint2(startPos.x + i, startPos.y + j);
-            _ImageFilterResult[pixelPos] = colour;
+            _ImageFilterResult[COORD_TEXTURE2D_X(pixelPos)] = colour;
         }
     }
 }
