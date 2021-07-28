@@ -75,12 +75,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  blockSize:
+  BlockSize:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 10
     min: 2
     max: 20
-  m_FilterComputeShader: {fileID: 7200000, guid: 8d8ea122f5b940842a1caf4881867a16, type: 3}
+  ShowInSceneView:
+    m_OverrideState: 1
+    m_Value: 0
+  FilterComputeShader: {fileID: 0}
 --- !u!114 &-1016694868962581565
 MonoBehaviour:
   m_ObjectHideFlags: 3
