@@ -27,7 +27,7 @@ public sealed class PixelateImageFilter : CustomPostProcessVolumeComponent, IPos
     {
         var mainKernel = FilterComputeShader.FindKernel("Pixelate");
         FilterComputeShader.GetKernelThreadGroupSizes(mainKernel, out uint xGroupSize, out uint yGroupSize, out _);
-        HDUtils.BlitCameraTexture(cmd, source, destination);
+        cmd.SetComputeTextureParam(FilterComputeShader, mainKernel, "_ImageFilterSource", source.nameID);
         cmd.SetComputeTextureParam(FilterComputeShader, mainKernel, "_ImageFilterResult", destination.nameID);
         cmd.SetComputeIntParam(FilterComputeShader, "_BlockSize", BlockSize.value);
         cmd.SetComputeIntParam(FilterComputeShader, "_ResultWidth", destination.rt.width);
