@@ -83,7 +83,9 @@ MonoBehaviour:
   ShowInSceneView:
     m_OverrideState: 1
     m_Value: 0
-  FilterComputeShader: {fileID: 0}
+  FilterComputeShaderParameter:
+    m_OverrideState: 1
+    m_Value: {fileID: 7200000, guid: 8d8ea122f5b940842a1caf4881867a16, type: 3}
 --- !u!114 &-1016694868962581565
 MonoBehaviour:
   m_ObjectHideFlags: 3
